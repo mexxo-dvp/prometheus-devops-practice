@@ -1,5 +1,3 @@
-<<<<<<< HEAD
-
 ## `demo-project/`
 
 ### Опис
@@ -50,12 +48,12 @@ gcloud compute firewall-rules create allow-nodeport-demo \
 
 Тепер застосунок доступний за адресою:
 
-http://<EXTERNAL-IP>:30080
+http://34.40.61.254:30080
 
-<EXTERNAL-IP> — зовнішня IP-адреса ноди з kubectl get nodes -o wide
+34.40.61.254 — зовнішня IP-адреса ноди з kubectl get nodes -o wide
 Перевірка
 
-curl http://<EXTERNAL-IP>:30080
+curl http://34.40.61.254:30080
 
 Або з використанням port-forward:
 
@@ -75,13 +73,7 @@ demo-project/
 
 Версія
 
-v1.0.0 — мінімально робоча версія, вручну задеплоєна у Kubernetes. У наступних версіях планується:
-
-    Додавання CI/CD через GitHub Actions
-
-    Підтримка Helm Charts
-
-    Моніторинг і логування застосунку
+v1.0.0 — мінімально робоча версія, вручну задеплоєна у Kubernetes.
 
 Автор
 
@@ -89,5 +81,3 @@ mexxo-dvp — DevOps-практикант
 GitHub: @mexxo-dvp
 =======
 # prometeus_devops_practice
-Test
->>>>>>> d4e2ece8282e4c55314b90f754dd96a28773fdb7

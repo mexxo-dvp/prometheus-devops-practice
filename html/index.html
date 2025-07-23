@@ -2,7 +2,7 @@
 <html>
 <!-- This should work everywhere -->
 <head>
-	<script type="text/javascript" src="https://maxwellito.github.io/vivus/dist/vivus.js"></script>
+	<script type="text/javascript" src="./vivus.min.js"></script>
   <script type="text/javascript">
   
 function sleep(ms) {
@@ -16,7 +16,7 @@ localStorage.frame_num = frame;
 document.getElementById('Main').innerHTML = "";
 
 
-   SVG = new Vivus('Main', {type: 'oneByOne', start:'manual', duration: s, file: './frame_'+frame+'.svg',
+   SVG = new Vivus('Main', {type: 'oneByOne', start:'manual', duration: s, file: './frame'+frame+'.svg',
     onReady: function (obj) {
     obj.play(2); }}, 
     function (obj) { 

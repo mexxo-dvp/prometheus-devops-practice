@@ -15,8 +15,8 @@
 # 1. Встановлення Git
 sudo apt-get update
 sudo apt-get install -y git
-git config --global user.name "mexxo-dvp"
-git config --global user.email "paranoidlookup@gmail.com"
+git config --global user.name "your user name"
+git config --global user.email "your email"
 git config --global init.defaultBranch main
 
 # 2. Встановлення Go 1.24.5

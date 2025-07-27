@@ -1,0 +1,36 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: prometheus-config
+data:
+  prometheus.yml: |-
+    global:
+      scrape_interval: 15s
+
+    rule_files:
+      - "/etc/prometheus/alerts.yml"
+
+    alerting:
+      alertmanagers:
+        - static_configs:
+            - targets: ['alertmanager:9093']
+
+    scrape_configs:
+      - job_name: 'prometheus'
+        static_configs:
+          - targets: ['localhost:9090']
+
+      - job_name: 'node_exporter'
+        static_configs:
+          - targets: ['node-exporter:9100']
+  alerts.yml: |-
+    groups:
+      - name: NodeAlerts
+        rules:
+          - alert: HighCPUUsage
+            expr: 100 - (avg by(instance) (rate(node_cpu_seconds_total{mode="idle"}[1m])) * 100) > 90
+            for: 1m
+            labels:
+              severity: warning
+            annotations:
+              summary: "High CPU usage detected on {{ $labels.instance }}"

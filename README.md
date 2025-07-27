@@ -8,7 +8,7 @@
 ---
 
 ## Передумови
-
+Проект спочатку виконувався на ubuntu 22.04 локально.
 Виконайте на Ubuntu-системі:
 
 ```bash
@@ -118,16 +118,168 @@ kubectl set image deployment/demo-app \
 
 kubectl rollout status deployment/demo-app
 
+
+Оновлення Розгортання моніторингу в Kubernetes через kind та використання dnsmasq — як кешуючий локальний DNS-сервер (v1.0.2)
+Починаючи з версії v1.0.2 розробка була перенесена у github codespace.
+Інфраструктурні компоненти
+
+✅ Додано:
+
+    dnsmasq — кешуючий локальний DNS-сервер для прискорення локальних CI/Dev-запитів.
+
+    Система моніторингу (Kubernetes-ready):
+
+        Prometheus — збір метрик
+
+        Grafana — візуалізація метрик
+
+        Node Exporter — метрики хост-машини
+
+        Alertmanager — система сповіщення про події, через telegram або slack 
+
+Конфігурації Kubernetes лежать у директорії k8s/.
+
+
+
+Розгортання моніторингу в Kubernetes через kind
+
+Крок 1. Встановлення kind
+
+Виконай у терміналі Codespaces:
+
+curl -Lo ./kind https://kind.sigs.k8s.io/dl/latest/kind-linux-amd64
+chmod +x ./kind
+sudo mv ./kind /usr/local/bin/kind
+
+kind version
+
+Крок 2. Створення кластера
+
+kind create cluster --name codespace-cluster
+
+Крок 3. Перевірка статусу
+
+Перевіряємо, що кластер запущено і kubectl має до нього доступ:
+
+kubectl cluster-info
+kubectl get nodes
+
+Ти повинен побачити інформацію про майстер-ноду і список вузлів (щонайменше один).
+Крок 4. Застосування маніфестів
+
+Тепер можна застосовувати всі свої YAML-файли Kubernetes із папки k8s:
+
+kubectl apply -f k8s/prometheus/configmap.yaml
+kubectl apply -f k8s/prometheus/deployment.yaml
+kubectl apply -f k8s/prometheus/service.yaml
+
+kubectl apply -f k8s/alertmanager/configmap.yaml
+kubectl apply -f k8s/alertmanager/deployment.yaml
+kubectl apply -f k8s/alertmanager/service.yaml
+
+kubectl apply -f k8s/grafana/configmap.yaml
+kubectl apply -f k8s/grafana/deployment.yaml
+kubectl apply -f k8s/grafana/service.yaml
+
+kubectl apply -f k8s/node-exporter/daemonset.yaml
+kubectl apply -f k8s/node-exporter/service.yaml
+
+Крок 5. Встановлення та налаштування dnsmasq
+Для прискорення DNS-запитів у локальному середовищі розробки та CI/CD використовується dnsmasq — легкий кешуючий DNS-сервер. Це допомагає зменшити затримки при багаторазових запитах до одних і тих самих доменів (наприклад, при оновленні пакетів, завантаженні артефактів).
+Структура файлів
+
+    Конфігурація та Dockerfile dnsmasq знаходяться в папці:
+    infra/dnsmasq/
+
+    Файл docker-compose.yml у корені проекту запускає сервіс dnsmasq та тестовий контейнер dev-runner.
+
+Як запустити
+
+    Перейти у корінь проекту:
+
+cd /шлях/до/prometheus-devops-practice
+
+    Запустити сервіси через Docker Compose:
+
+docker-compose up -d --build
+
+Як перевірити роботу
+
+    Підключитись до тестового контейнера:
+
+docker exec -it dev-runner bash
+
+    Встановити dig (якщо потрібно):
+
+apt update && apt install -y dnsutils
+
+    Виконати перший DNS-запит:
+
+dig google.com
+
+Звернути увагу на час у рядку Query time.
+
+    Виконати запит повторно:
+
+dig google.com
+
+Другий запит повинен бути значно швидшим — це означає, що DNS-відповідь береться з кешу dnsmasq.
+
+
 Структура проєкту
 
-demo-project/
-├── bin/                  # Go‑бінарник
-├── Dockerfile            # Інструкція Docker
-├── go.mod                # Go‑модулі
-├── html/                 # Статичні файли
-├── k8s/                  # YAML‑манифести Kubernetes
-├── src/                  # Початковий код Go
-└── README.md             # Документація
+
+prometheus-devops-practice/
+├── Dockerfile # Dockerfile основного Go-додатку
+├── README.md # Головна документація проекту
+├── docker-compose.yml # Compose для dnsmasq і dev-runner
+├── go.mod # Go-модулі
+├── html/ # Статичні файли (SVG, HTML, JS)
+│ ├── frame1.svg
+│ ├── frame2.svg
+│ ├── ... # Інші SVG-файли
+│ └── index.html
+├── infra/
+│ └── dnsmasq/
+│ ├── Dockerfile # Dockerfile для dnsmasq
+│ └── dnsmasq.conf # Конфігурація dnsmasq
+├── k8s/ # Маніфести Kubernetes для різних компонентів
+│ ├── alertmanager/
+│ │ ├── configmap.yaml
+│ │ ├── deployment.yaml
+│ │ └── service.yaml
+│ ├── deployment.yaml
+│ ├── grafana/
+│ │ ├── configmap.yaml
+│ │ ├── deployment.yaml
+│ │ └── service.yaml
+│ ├── node-exporter/
+│ │ ├── daemonset.yaml
+│ │ └── service.yaml
+│ ├── prometheus/
+│ │ ├── configmap.yaml
+│ │ ├── deployment.yaml
+│ │ └── service.yaml
+│ └── service.yaml
+├── monitoring/ # Моніторинг: Grafana, Prometheus, node_exporter
+│ ├── docker-compose.yml
+│ ├── grafana/
+│ │ ├── Dockerfile
+│ │ └── provisioning/
+│ │ ├── dashboards/
+│ │ └── datasources/
+│ ├── node_exporter/
+│ │ ├── LICENSE
+│ │ ├── NOTICE
+│ │ ├── README.md
+│ │ └── node_exporter
+│ └── prometheus/
+│ ├── alertmanager.yml
+│ ├── alerts.yml
+│ └── prometheus.yml
+└── src/
+└── main.go # Основний код додатку
+
 
 Автор
 

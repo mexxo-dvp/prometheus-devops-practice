@@ -1,0 +1,18 @@
+# Go
+bin/
+*.exe
+*.test
+*.out
+
+# Dependency directories (if applicable)
+vendor/
+
+# OS
+.DS_Store
+
+# IDEs
+.idea/
+.vscode/
+
+# Docker
+*.tar

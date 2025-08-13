@@ -1,0 +1,31 @@
+version: '3.8'
+
+services:
+  dnsmasq:
+    build: ./infra/dnsmasq
+    container_name: dnsmasq
+    ports:
+      - "1053:53/udp"  # Проброс 53/udp контейнера на локальний порт 1053
+    networks:
+      dns_net:
+        ipv4_address: 172.20.0.53
+    restart: unless-stopped
+
+  dev-runner:
+    image: ubuntu:22.04
+    container_name: dev-runner
+    command: sleep infinity
+    networks:
+      dns_net:
+        ipv4_address: 172.20.0.100
+    dns:
+      - 172.20.0.53   # Використовуємо dnsmasq як DNS-сервер
+    depends_on:
+      - dnsmasq
+
+networks:
+  dns_net:
+    driver: bridge
+    ipam:
+      config:
+        - subnet: 172.20.0.0/24
